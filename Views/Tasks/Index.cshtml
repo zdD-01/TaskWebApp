@@ -1,14 +1,8 @@
-﻿@model IEnumerable<TaskWebApp.Models.TasksData>
+﻿@model TaskWebApp.Models.TaskListViewModel
 
 @{
     ViewBag.Title = "Index";
 }
-
-
-
-<p>
-    @Html.ActionLink("Create New", "Create")
-</p>
 
 <h2>Task List</h2>
 
@@ -17,8 +11,8 @@
     <div class="form-group">
         <label for="stateFilter">Filter by State:</label>
         <select id="stateFilter" name="stateFilter" class="form-control" onchange="this.form.submit()">
-            <option value="">All</option>
-            @foreach (var item in ViewBag.StateList as List<SelectListItem>)
+            <option value="">Select a state</option>
+            @foreach (var item in Model.StateList)
             {
                 <option value="@item.Value" @(item.Selected ? "selected" : "")>@item.Text</option>
             }
@@ -26,43 +20,30 @@
     </div>
 </form>
 
+<!-- Task Table -->
 <table class="table">
-    <tr>
-        <th>
-            @Html.DisplayNameFor(model => model.Name)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.Description)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.State)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.LastDate)
-        </th>
-        <th></th>
-    </tr>
-
-    @foreach (var item in Model)
-    {
+    <thead>
         <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Name)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Description)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.State)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.LastDate)
-            </td>
-            <td>
-                @Html.ActionLink("Edit", "Edit", new { id = item.Id }) |
-                @Html.ActionLink("Delete", "Delete", new { id = item.Id })
-            </td>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Task State</th>
+            <th>Last Date</th>
+            <th>Actions</th>
         </tr>
-    }
-
+    </thead>
+    <tbody>
+        @foreach (var t in Model.Tasks)
+        {
+            <tr>
+                <td>@t.Name</td>
+                <td>@t.Description</td>
+                <td>@t.State.ToString()</td>
+                <td>@t.LastDate</td>
+                <td>
+                    @Html.ActionLink("Edit", "Edit", new { id = t.Id }) |
+                    @Html.ActionLink("Delete", "Delete", new { id = t.Id })
+                </td>
+            </tr>
+        }
+    </tbody>
 </table>

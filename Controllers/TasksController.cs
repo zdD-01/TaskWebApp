@@ -12,48 +12,46 @@ namespace TaskWebApp.Controllers
 {
     public class TasksController : Controller
     {
-        private TaskManagmentDatabaseEntities db = new TaskManagmentDatabaseEntities();
-
+        private TaskContext db = new TaskContext();
         // GET: Tasks
-        public ActionResult Index(int? stateFilter)
+        public ActionResult Index(TaskState? stateFilter)
         {
-            // Get all tasks
-            var tasks = db.TasksDatas.AsQueryable();
+            var tasks = stateFilter.HasValue 
+                ? db.TasksDatas.Where(t => t.State == stateFilter.Value)
+                : db.TasksDatas.AsQueryable();
 
-            // Apply the filter if stateFilter is provided
-            if (stateFilter.HasValue)
+            // Create the ViewModel
+            var viewModel = new TaskListViewModel
             {
-                tasks = tasks.Where(t => (int)t.State == stateFilter.Value);
-            }
-
-            // Pass the current filter to the view via ViewBag
-            ViewBag.StateFilter = stateFilter;
-
-            // Populate the dropdown options
-            ViewBag.StateList = Enum.GetValues(typeof(TaskState))
-                .Cast<TaskState>()
-                .Select(e => new SelectListItem
+                Tasks = tasks.ToList(),
+                SelectedState = stateFilter,
+                StateList = new List<SelectListItem>
                 {
-                    Value = ((int)e).ToString(),
-                    Text = e.ToString(),
-                    Selected = stateFilter.HasValue && ((int)e) == stateFilter.Value
-                }).ToList();
-            
-            return View(tasks.ToList());
+                    new SelectListItem
+                    {
+                        Text = "All States",
+                        Value = "", // Empty value corresponds to null
+                        Selected = !stateFilter.HasValue
+                    }
+                }
+                .Concat(
+                    Enum.GetValues(typeof(TaskState))
+                        .Cast<TaskState>()
+                        .Select(s => new SelectListItem
+                        {
+                            Text = s.ToString(),
+                            Value = ((int)s).ToString(),
+                            Selected = stateFilter.HasValue && s == stateFilter.Value
+                        })).ToList()
+                };
+
+            return View(viewModel);
         }
 
+        
         // GET: Tasks/Create
         public ActionResult Create()
         {
-            // Pass enum options to the ViewBag for the dropdown
-            ViewBag.StateOptions = Enum.GetValues(typeof(TaskState))
-                .Cast<TaskState>()
-                .Select(e => new SelectListItem
-                {
-                    Value = ((int)e).ToString(),
-                    Text = e.ToString()
-                });
-
             return View();
         }
 
@@ -62,26 +60,22 @@ namespace TaskWebApp.Controllers
         // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create([Bind(Include = "Id,Name,Description,State,LastDate")] TasksData tasksData)
+        public ActionResult Create(TaskViewModel model)
         {
-            if (ModelState.IsValid)
+            var tasksData = new TasksData
             {
-                tasksData.Id = Guid.NewGuid();
-                db.TasksDatas.Add(tasksData);
-                db.SaveChanges();
-                return RedirectToAction("Index");
-            }
+                Id = Guid.NewGuid(),
+                Name = model.Name,
+                Description = model.Description,
+                State = model.State,
+                LastDate = model.LastDate
 
-            // Re-populate StateOptions in case of validation errors
-            ViewBag.StateOptions = Enum.GetValues(typeof(TaskState))
-                .Cast<TaskState>()
-                .Select(e => new SelectListItem
-                {
-                    Value = ((int)e).ToString(),
-                    Text = e.ToString()
-                });
+            };
+            model.Id = tasksData.Id.ToString();
 
-            return View(tasksData);
+            db.TasksDatas.Add(tasksData);
+            db.SaveChanges();
+            return RedirectToAction("Index");
         }
 
         // GET: Tasks/Edit/5
@@ -97,16 +91,6 @@ namespace TaskWebApp.Controllers
             {
                 return HttpNotFound();
             }
-
-            // Populate the State dropdown
-            ViewBag.StateOptions = Enum.GetValues(typeof(TaskState))
-                .Cast<TaskState>()
-                .Select(e => new SelectListItem
-                {
-                    Value = ((int)e).ToString(),
-                    Text = e.ToString(),
-                    Selected = (int)e == (int)tasksData.State // Set the current state as selected
-                });
 
             return View(tasksData);
         }
@@ -125,16 +109,6 @@ namespace TaskWebApp.Controllers
                 db.SaveChanges();
                 return RedirectToAction("Index");
             }
-
-            // Re-populate the State dropdown in case of validation errors
-            ViewBag.StateOptions = Enum.GetValues(typeof(TaskState))
-                .Cast<TaskState>()
-                .Select(e => new SelectListItem
-                {
-                    Value = ((int)e).ToString(),
-                    Text = e.ToString(),
-                    Selected = (int)e == (int)tasksData.State
-                });
 
             return View(tasksData);
         }

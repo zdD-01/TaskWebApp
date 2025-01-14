@@ -2,6 +2,14 @@
 
 @{
     ViewBag.Title = "Edit";
+    var stateList = Enum.GetValues(typeof(TaskWebApp.Models.TaskState))
+                         .Cast<TaskWebApp.Models.TaskState>()
+                         .Select(s => new SelectListItem
+                         {
+                             Text = s.ToString(),
+                             Value = ((int)s).ToString()
+                         })
+                         .ToList();
 }
 
 <h2>Edit</h2>
@@ -37,7 +45,7 @@
             <div class="col-md-10">
                 @Html.DropDownListFor(
                     model => model.State,
-                    (IEnumerable<SelectListItem>)ViewBag.StateOptions,
+                    (IEnumerable<SelectListItem>)stateList,
                     "Select State",
                     new { @class = "form-control" }
                 )

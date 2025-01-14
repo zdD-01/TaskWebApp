@@ -1,7 +1,15 @@
-﻿@model TaskWebApp.Models.TasksData
+﻿@model TaskWebApp.Models.TaskViewModel
 
 @{
     ViewBag.Title = "Create";
+    var stateList = Enum.GetValues(typeof(TaskWebApp.Models.TaskState))
+                         .Cast<TaskWebApp.Models.TaskState>()
+                         .Select(s => new SelectListItem
+                         {
+                             Text = s.ToString(),
+                             Value = ((int)s).ToString()
+                         })
+                         .ToList();
 }
 
 <h2>Create</h2>
@@ -34,7 +42,7 @@
         <div class="form-group">
             @Html.LabelFor(model => model.State, htmlAttributes: new { @class = "control-label col-md-2" })
             <div class="col-md-10">
-                @Html.DropDownListFor(model => model.State, (IEnumerable<SelectListItem>)ViewBag.StateOptions, "Select State", new { @class = "form-control" })
+                @Html.DropDownListFor(model => model.State, (IEnumerable<SelectListItem>) stateList, "Select State", new { @class = "form-control" })
                 @Html.ValidationMessageFor(model => model.State, "", new { @class = "text-danger" })
             </div>
         </div>
