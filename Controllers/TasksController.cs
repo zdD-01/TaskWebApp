@@ -52,7 +52,8 @@ namespace TaskWebApp.Controllers
         // GET: Tasks/Create
         public ActionResult Create()
         {
-            return View();
+            var taskViewModel = new TaskViewModel();
+            return View(taskViewModel);
         }
 
         // POST: Tasks/Create
